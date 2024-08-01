@@ -76,15 +76,6 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
   },
   providers: [
-    /**
-     * ...add more providers here.
-     *
-     * Most other providers require a bit more work than the Discord provider. For example, the
-     * GitHub provider requires you to add the `refresh_token_expires_in` field to the Account
-     * model. Refer to the NextAuth.js docs for the provider you want to use. Example:
-     *
-     * @see https://next-auth.js.org/providers/github
-     */
     CredentialsProvider({
       name: "Credentials",
       type: "credentials",
@@ -115,82 +106,6 @@ export const authOptions: NextAuthOptions = {
         }
       },
     }),
-    /*CredentialsProvider({
-    name: "Claim Number",
-    type: "credentials",
-    credentials: {
-      email: {
-        label: "Email",
-        type: "text",
-        placeholder: "mail@example.com",
-      },
-      claimNumber: {
-        label: "Claim #",
-        type: "text",
-        placeholder: "123456789",
-      },
-    },
-    async authorize(credentials) {
-      if (!credentials) return null;
-
-      const involvedPartyMatchesQuery = kysely
-        .selectFrom("involved_parties as ip")
-        .innerJoin("claims as c", "c.id", "ip.claim_id")
-        .where("c.claim_number", "=", Number(credentials?.claimNumber))
-        .where((eb) =>
-          eb.exists(
-            sql`(SELECT 1 FROM unnest(ip.email_addresses) AS email WHERE lower(email) ILIKE ${
-              "%" + (credentials.email ?? "") + "%"
-            })`,
-          ),
-        )
-        .select([
-          "ip.id",
-          "ip.has_system_access as hasSystemAccess",
-          "ip.name",
-          "ip.type",
-          "ip.organization_id as organizationId",
-          "c.id as claimId",
-        ]);
-
-      const involvedPartyMatches = await prismaClient.$kyselyQuery(
-        involvedPartyMatchesQuery.compile(),
-      );
-
-      const involvedParty = involvedPartyMatches?.[0];
-
-      try {
-        if (!involvedParty) return null;
-
-        const response = {
-          id: involvedParty.id,
-          email: credentials.email,
-          name: involvedParty.name ?? "No name",
-          claimNumber: credentials.claimNumber,
-          isActive: true,
-          role:
-            involvedParty.type === "RENTER"
-              ? AuthorizationRoles.RENTER
-              : AuthorizationRoles.INVOLVED_PARTY,
-          organizationId: involvedParty.organizationId,
-        };
-
-        return response;
-      } catch (error) {
-        if (error instanceof Error) {
-          logger.error(
-            `Involved party with e-mail ${credentials?.email} could not sign into the app. Error: ${error.message}`,
-          );
-
-          captureException(error);
-c
-          throw new Error("Invalid credentials");
-        }
-
-        return null;
-      }
-    },
-  }),*/
   ],
 }
 
