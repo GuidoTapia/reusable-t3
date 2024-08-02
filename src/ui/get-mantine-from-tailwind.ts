@@ -16,6 +16,10 @@ function objectTailwindToMantine(
   tailwindObject?: ResolvableTo<KeyValuePair>,
   tailwindExtendObject?: ResolvableTo<KeyValuePair>,
 ): Record<string, string> | undefined {
+  /* Most of the cases, the only differnce between Tailwind and Mantine is that
+     Tailwind uses two iterable KeyValuePair (overwrite and extend), and Mantine 
+     uses a single Record<string, string>, this function uniform most of the config fields
+  */
   if (tailwindObject || tailwindExtendObject)
     return {
       ...(tailwindObject ? tailwindObject : {}),
@@ -32,6 +36,10 @@ function getFontSizes(
     KeyValuePair<string, string | [fontSize: string, rest: unknown]>
   >,
 ): Record<string, string> | undefined {
+  /* Tailwind fontSizes could be a string or an array that includes lineHeight or a config 
+     obj (lineHeight, letterSpacing, fontWeight), so if the fontSize is an array we only care 
+     the first value
+  */
   if (tailwindFontSizeObject || tailwindFontSizeExtendObject)
     return Object.fromEntries(
       [
@@ -55,6 +63,10 @@ function getBreakpoints(
   tailwindScreenObject?: ResolvableTo<ScreensConfig>,
   tailwindScreenExtendObject?: ResolvableTo<ScreensConfig>,
 ): Record<string, string> | undefined {
+  /* Tailwind breakpoints could be a string, a number (for pixels) or an object with the 
+     attributtes min, max and/or raw, string and number are trivial, but deffining wich uses 
+     with min max and raw still need development
+  */
   if (tailwindScreenObject || tailwindScreenExtendObject)
     return Object.fromEntries(
       [
