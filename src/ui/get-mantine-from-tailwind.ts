@@ -38,7 +38,7 @@ function getFontSizes(
 ): Record<string, string> | undefined {
   /* Tailwind fontSizes could be a string or an array that includes lineHeight or a config 
      obj (lineHeight, letterSpacing, fontWeight), so if the fontSize is an array we only care 
-     the first value
+     for the first value
   */
   if (tailwindFontSizeObject || tailwindFontSizeExtendObject)
     return Object.fromEntries(
