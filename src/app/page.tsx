@@ -1,3 +1,4 @@
+import { Button, Text } from "@mantine/core"
 import Link from "next/link"
 
 import { LatestPost } from "~/app/_components/post"
@@ -7,8 +8,6 @@ import { api, HydrateClient } from "~/trpc/server"
 export default async function Home() {
   const hello = await api.post.hello({ text: "from tRPC" })
   const session = await getServerAuthSession()
-
-  void api.post.getLatest.prefetch()
 
   return (
     <HydrateClient>
@@ -58,9 +57,16 @@ export default async function Home() {
               </Link>
             </div>
           </div>
-
-          {session?.user && <LatestPost />}
         </div>
+
+        <h1>Tailwind Button</h1>
+        <button className="rounded-sm bg-indigo-300 p-sm text-sm leading-none">
+          Hola
+        </button>
+        <Text>Mantine Button</Text>
+        <Button radius="sm" bg="indigo.3" p="sm" fs="sm" fw="normal" h="100%">
+          Hola
+        </Button>
       </main>
     </HydrateClient>
   )

@@ -1,6 +1,6 @@
 const config = {
   plugins: {
-    tailwindcss: {},
+    tailwindcss: { config: "./src/ui/tailwindcss-config.ts" },
   },
 }
 
