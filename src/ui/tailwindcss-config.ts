@@ -1,9 +1,10 @@
 import { type Config } from "tailwindcss"
 import { fontFamily } from "tailwindcss/defaultTheme"
+import { getTailwindConfig } from "./get-tailwind-from-mantine"
+import { mantineTheme } from "./mantine-theme"
 
-/** @type {import('tailwindcss').Config} */
-export default {
-  content: ["./src/**/*.tsx"],
+export default getTailwindConfig(mantineTheme) satisfies Config
+/*export default {
   theme: {
     extend: {
       fontFamily: {
@@ -54,4 +55,5 @@ export default {
     },
   },
   plugins: [],
-} satisfies Config
+  content: ["./src/** /*.tsx"],
+} satisfies Config*/
