@@ -1,14 +1,23 @@
-import { PrismaAdapter } from "@auth/prisma-adapter";
+import { PrismaAdapter } from "@auth/prisma-adapter"
 import {
   getServerSession,
   type DefaultSession,
   type NextAuthOptions,
-} from "next-auth";
-import { type Adapter } from "next-auth/adapters";
-import DiscordProvider from "next-auth/providers/discord";
+} from "next-auth"
+import { type Adapter } from "next-auth/adapters"
+import AuthAdapter from "~/server/auth-adapter"
 
-import { env } from "~/env";
-import { db } from "~/server/db";
+import CredentialsProvider from "next-auth/providers/credentials"
+
+import { env } from "~/env/server.mjs"
+import { db } from "~/server/db"
+import { createPrismaClient } from "./db/prisma"
+import { logger } from "./logger"
+import { PrismaClient } from "@prisma/client/extension"
+
+const prismaClient = createPrismaClient()
+
+const nextAuthLogger = logger.child({ scope: "nextauth" })
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -19,10 +28,10 @@ import { db } from "~/server/db";
 declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
-      id: string;
+      id: string
       // ...other properties
       // role: UserRole;
-    } & DefaultSession["user"];
+    } & DefaultSession["user"]
   }
 
   // interface User {
@@ -38,35 +47,71 @@ declare module "next-auth" {
  */
 export const authOptions: NextAuthOptions = {
   callbacks: {
-    session: ({ session, user }) => ({
-      ...session,
-      user: {
-        ...session.user,
-        id: user.id,
+    session: ({ session, user, token }) => {
+      return {
+        ...session,
+        user: {
+          ...session.user,
+          ...user,
+          //id: token?.id,
+        },
+      }
+    },
+    jwt(params) {
+      nextAuthLogger.info("nextauth.jwt: start", params)
+
+      const { token, account, user } = params
+
+      return { ...token, ...account, ...user }
+    },
+  },
+  adapter: AuthAdapter(
+    prismaClient as unknown as PrismaClient,
+  ) as unknown as Adapter,
+  session: {
+    maxAge:
+      env.NODE_ENV === "production"
+        ? 60 * 60 * 12 /* 12 hours */
+        : 60 * 60 * 24 * 7 /* 7 days */,
+    strategy: "jwt",
+  },
+  providers: [
+    CredentialsProvider({
+      name: "Credentials",
+      type: "credentials",
+      credentials: {
+        email: {
+          label: "Email",
+          type: "text",
+          placeholder: "example@mail.com",
+        },
+        password: {
+          label: "Password",
+          type: "password",
+          placeholder: "********",
+        },
+      },
+
+      async authorize(credentials, req) {
+        const user = await prismaClient.user.findFirst({
+          where: {
+            email: credentials?.email,
+          },
+        })
+
+        if (user) {
+          return user
+        } else {
+          return null
+        }
       },
     }),
-  },
-  adapter: PrismaAdapter(db) as Adapter,
-  providers: [
-    DiscordProvider({
-      clientId: env.DISCORD_CLIENT_ID,
-      clientSecret: env.DISCORD_CLIENT_SECRET,
-    }),
-    /**
-     * ...add more providers here.
-     *
-     * Most other providers require a bit more work than the Discord provider. For example, the
-     * GitHub provider requires you to add the `refresh_token_expires_in` field to the Account
-     * model. Refer to the NextAuth.js docs for the provider you want to use. Example:
-     *
-     * @see https://next-auth.js.org/providers/github
-     */
   ],
-};
+}
 
 /**
  * Wrapper for `getServerSession` so that you don't need to import the `authOptions` in every file.
  *
  * @see https://next-auth.js.org/configuration/nextjs
  */
-export const getServerAuthSession = () => getServerSession(authOptions);
+export const getServerAuthSession = () => getServerSession(authOptions)
